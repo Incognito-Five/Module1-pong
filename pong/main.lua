@@ -77,7 +77,10 @@ function love.load()
     sounds = {
         ['paddle_hit'] = love.audio.newSource('sounds/paddle_hit.wav', 'static'),
         ['score'] = love.audio.newSource('sounds/score.wav', 'static'),
-        ['wall_hit'] = love.audio.newSource('sounds/wall_hit.wav', 'static')
+        ['wall_hit'] = love.audio.newSource('sounds/wall_hit.wav', 'static'),
+        ['menu_select'] = love.audio.newSource(),
+        ['menu_error'] = love.audio.newSource(),
+        ['bgm'] = love.audio.newSource()
     }
     
     -- initialize our virtual resolution, which will be rendered within our
@@ -100,7 +103,16 @@ function love.load()
     -- initialize score variables
     player1Score = 0
     player2Score = 0
-
+    
+    --mode can be pvp or pvc
+    mode = ''
+    --difficulty can be easy, normal, average
+    difficulty = ''
+    --side can be left or right
+    side = ''
+    --W/S for left side while Up/Down for right side
+    controls = ''
+    
     -- either going to be 1 or 2; whomever is scored on gets to serve the
     -- following turn
     servingPlayer = 1
@@ -108,13 +120,18 @@ function love.load()
     -- player who won the game; not set to a proper value until we reach
     -- that state in the game
     winningPlayer = 0
+    
+    mode = ''
 
     -- the state of our game; can be any of the following:
     -- 1. 'start' (the beginning of the game, before first serve)
     -- 2. 'serve' (waiting on a key press to serve the ball)
     -- 3. 'play' (the ball is in play, bouncing between paddles)
     -- 4. 'done' (the game is over, with a victor, ready for restart)
-    gameState = 'start'
+    -- 5. 'menu_mode' (before the game starts, choose mode)
+    -- 6. 'menu_level' (before the game starts, if the chosen mode is 'pvc', select difficulty)
+    -- 7. 'menu_side' (before the game starts, if the chosen mode is 'pvc', select side)
+    gameState = 'menu_mode'
 end
 
 --[[
@@ -136,14 +153,42 @@ end
     across system hardware.
 ]]
 function love.update(dt)
+    if (gameState ~= 'menu_mode' and gameState ~= 'menu_level' and gameState ~= 'menu_side') == false then
+        sounds['bgm']:setLooping(true)
+        sounds['bgm']:play()
+    end
+
+    if (gameState ~= 'menu_mode' and gameState ~= 'menu_level' and gameState ~= 'menu_side') == true then
+        sounds['bgm']:setLooping(true)
+        love.audio.stop(sounds['bgm'])
+    end
+    
     if gameState == 'serve' then
         -- before switching to play, initialize ball's velocity based
         -- on player who last scored
-        ball.dy = math.random(-50, 50)
-        if servingPlayer == 1 then
+        if mode == 'pvp' then                   ---pvp rules
+            if servingPlayer == 1 then
+                ball.dx = math.random(140, 200)
+                ball.dy = math.random(-50, 50)
+            elseif servingPlayer == 2 then  --changes
+                ball.dx = -math.random(140, 200)
+                ball.dy = math.random(-50, 50)
+            end 
+        end  
+        if servingPlayer == 1 and side == 'left' and gameMode == 'pvc' then
             ball.dx = math.random(140, 200)
-        else
+            ball.dy = math.random(-50, 50)
+        elseif servingPlayer == 2 and side == 'left' and gameMode == 'pvc' then  --changes
             ball.dx = -math.random(140, 200)
+            ball.dy = math.random(-50, 50)
+            gameState = 'play'
+        elseif servingPlayer == 1 and side == 'right' and gameMode == 'pvc'  then
+                ball.dx = math.random(140, 200)
+                ball.dy = math.random(-50, 50)
+                gameState = 'play'
+            elseif servingPlayer == 2 and side == 'right' and gameMode == 'pvc' then  --changes
+                ball.dx = -math.random(140, 200)
+                ball.dy = math.random(-50, 50)
         end
     elseif gameState == 'play' then
         -- detect ball collision with paddles, reversing dx if true and
@@ -224,28 +269,74 @@ function love.update(dt)
             end
         end
     end
-
     --
     -- paddles can move no matter what state we're in
     --
     -- player 1
-    if love.keyboard.isDown('w') then
-        player1.dy = -PADDLE_SPEED
-    elseif love.keyboard.isDown('s') then
-        player1.dy = PADDLE_SPEED
-    else
-        player1.dy = 0
-    end
+    if gameMode == 'pvp' then
+        if love.keyboard.isDown('w') then
+            player1.dy = -PADDLE_SPEED
+        elseif love.keyboard.isDown('s') then
+            player1.dy = PADDLE_SPEED
+        else
+            player1.dy = 0
+        end
 
     -- player 2
-    if love.keyboard.isDown('up') then
-        player2.dy = -PADDLE_SPEED
-    elseif love.keyboard.isDown('down') then
-        player2.dy = PADDLE_SPEED
-    else
-        player2.dy = 0
+        if love.keyboard.isDown('up') then
+            player2.dy = -PADDLE_SPEED
+        elseif love.keyboard.isDown('down') then
+            player2.dy = PADDLE_SPEED
+        else
+            player2.dy = 0
+        end
     end
+    if gameMode == 'pvc' then   
+        up_button = 'w'     
+        down_button = 's'
+        if controls == 'ws' then            -- set controls
+            up_button = 'w'
+            down_button = 's'
+        elseif controls == 'ud' then
+            up_button = 'up'
+            down_button = 'down'
+        end
 
+        check_width = 0
+        if difficulty == 'easy' then
+            check_width = VIRTUAL_WIDTH/4
+        elseif difficulty == 'average' then
+            check_width = VIRTUAL_WIDTH/2
+        elseif difficulty == 'hard' then
+            check_width = VIRTUAL_WIDTH
+        end
+        pl1 = player1         
+        pl2 = player2
+        if side == 'left' then
+            pl1 = player1
+            pl2 = player2
+        elseif side == 'right' then
+            pl1 = player2 
+            pl2 = player1
+        end
+        if ((ball.x - plr2.x)^2)^(0.5)  < check_width then 
+            if (pl2.y > (ball.y + ball.height/2))  then                    -- computer
+                pl2.dy = -PADDLE_SPEED
+            elseif (pl2.y + plr2.height < (ball.y + ball.height/2))  then
+                pl2.dy = PADDLE_SPEED
+            else
+                pl2.dy = 0
+            end
+        end
+
+        if love.keyboard.isDown(up_button) then             -- player
+            pl1.dy = -PADDLE_SPEED
+        elseif love.keyboard.isDown(down_button) then
+            pl1.dy = PADDLE_SPEED
+        else
+            pl1.dy = 0
+        end
+    end
     -- update our ball based on its DX and DY only if we're in play state;
     -- scale the velocity by dt so movement is framerate-independent
     if gameState == 'play' then
@@ -265,36 +356,93 @@ end
 function love.keypressed(key)
     -- `key` will be whatever key this callback detected as pressed
     if key == 'escape' then
-        -- the function LÖVE2D uses to quit the application
-        love.event.quit()
+        if gameState ~= 'menu_mode' then
+         gameState = 'menu_mode'
+         ball:reset()
+         player1Score = 0
+         player2Score = 0
+         player1:reset1()
+         player2:reset2()
+        else
+            love.event.quit()
+        end
     -- if we press enter during either the start or serve phase, it should
     -- transition to the next appropriate state
     elseif key == 'enter' or key == 'return' then
-        if gameState == 'start' then
-            gameState = 'serve'
-        elseif gameState == 'serve' then
-            gameState = 'play'
-        elseif gameState == 'done' then
-            -- game is simply in a restart phase here, but will set the serving
-            -- player to the opponent of whomever won for fairness!
-            gameState = 'serve'
-
-            ball:reset()
-
-            -- reset scores to 0
-            player1Score = 0
-            player2Score = 0
-
+        if (gameMode == 'pvp') or (gameMode == 'pvc' and ((side == 'left' and servingPlayer == 1) or (side == 'right' and servingPlayer == 2))) then
+            if gameState == 'start' then
+                gameState = 'serve'
+            elseif gameState == 'serve' then
+                gameState = 'play'
+            elseif gameState == 'done' then
+                -- game is simply in a restart phase here, but will set the serving
+                -- player to the opponent of whomever won for fairness!
+                gameState = 'serve'
+                ball:reset()
+                -- reset scores to 0
+                player1Score = 0
+                player2Score = 0
             -- decide serving player as the opposite of who won
-            if winningPlayer == 1 then
-                servingPlayer = 2
-            else
-                servingPlayer = 1
+                if winningPlayer == 1 then
+                    servingPlayer = 2
+                else
+                    servingPlayer = 1
+                end
+            end
+        elseif  (gameMode == 'pvc') and ((side == 'left' and servingPlayer == 2) or (side == 'right' and servingPlayer == 1)) then
+            if gameState == 'start' then
+                gameState = 'serve'
             end
         end
     end
+    -- the menu where one can choose to play standard PvP, against AI or watch
+    if gameState == 'menu_mode' then
+        if key == '1'  then
+            gameMode = 'pvp'
+            gameState = 'start'
+            sounds['menu_select']:play()
+        elseif key == '2' then
+            gameMode = 'pvc'
+            gameState = 'menu_level'
+            sounds['menu_select']:play()
+        else 
+            sounds['menu_error']:play()
+        end
+    -- choose difficulty of AI opponent
+    elseif gameState == 'menu_level' then 
+         -- the gamestate is mentioned twice to avoid mispresses
+        if key == '1'  then
+            difficulty = 'easy'
+            gameState = 'menu_side'
+            sounds['menu_select']:play()
+        elseif key == '2' then
+            difficulty = 'average'
+            gameState = 'menu_side'
+            sounds['menu_select']:play()
+        elseif key == '3' then
+            difficulty = 'hard'
+            gameState = 'menu_side'
+            sounds['menu_select']:play()
+        else 
+            sounds['menu_error']:play()
+        end
+        -- to choose which side your player is on
+    elseif gameState == 'menu_side' then    
+        if key == '1' then
+            side = 'left'
+            controls = 'ws'
+            gameState = 'start'
+            sounds['menu_select']:play()
+        elseif key == '2' then
+            side = 'right'
+            controls = 'ud'
+            gameState = 'start'
+            sounds['menu_select']:play()
+        else 
+            sounds['menu_error']:play()
+        end      
+    end
 end
-
 --[[
     Called each frame after update; is responsible simply for
     drawing all of our game objects and more to the screen.
@@ -313,28 +461,71 @@ function love.draw()
         love.graphics.printf('Press Enter to begin!', 0, 20, VIRTUAL_WIDTH, 'center')
     elseif gameState == 'serve' then
         -- UI messages
-        love.graphics.setFont(smallFont)
-        love.graphics.printf('Player ' .. tostring(servingPlayer) .. "'s serve!", 
-            0, 10, VIRTUAL_WIDTH, 'center')
-        love.graphics.printf('Press Enter to serve!', 0, 20, VIRTUAL_WIDTH, 'center')
+        if gameMode == 'pvp' then
+            love.graphics.setFont(smallFont)
+            love.graphics.printf('Player ' .. tostring(servingPlayer) .. "'s serve!", 0, 10, VIRTUAL_WIDTH, 'center')
+            love.graphics.printf('Press Enter to serve!', 0, 20, VIRTUAL_WIDTH, 'center')
+         elseif gameMode == 'pvc' then
+            if (side == 'left' and servingPlayer == 1) or (side == 'right' and servingPlayer == 2) then
+                love.graphics.setFont(smallFont)
+                love.graphics.printf("Player's serve!", 0, 10, VIRTUAL_WIDTH, 'center')
+                love.graphics.printf('Press Enter to serve!', 0, 20, VIRTUAL_WIDTH, 'center')
+            elseif (side == 'left' and servingPlayer == 2) or (side == 'right' and servingPlayer == 1) then
+                love.graphics.setFont(smallFont)
+                love.graphics.printf("Computer's serve",  0, 10, VIRTUAL_WIDTH, 'center')
+                love.graphics.printf('Press Enter to serve!', 0, 20, VIRTUAL_WIDTH, 'center')
+            end
+        end
     elseif gameState == 'play' then
+        love.graphics.setFont(smallFont)
+        if gameMode == 'pvc' then
+            love.graphics.printf('difficulty: '..difficulty..' side: '..side..' controls: '..controls, 0, 10, VIRTUAL_WIDTH, 'center')
+        end
         -- no UI messages to display in play
     elseif gameState == 'done' then
         -- UI messages
+        if gameMode == 'pvp' then
+            love.graphics.setFont(largeFont)
+            love.graphics.printf('Player ' .. tostring(winningPlayer) .. ' wins!', 0, 10, VIRTUAL_WIDTH, 'center')
+            love.graphics.setFont(smallFont)
+            love.graphics.printf('Press Enter to restart!', 0, 30, VIRTUAL_WIDTH, 'center')
+         elseif gameMode == 'pvc' then
+            if (side == 'left' and winningPlayer == 1) or (side == 'right' and winningPlayer == 2) then
+                love.graphics.setFont(largeFont)
+                love.graphics.printf("Player wins", 0, 10, VIRTUAL_WIDTH, 'center')
+                love.graphics.setFont(smallFont)
+                love.graphics.printf('Press Enter to restart', 0, 30, VIRTUAL_WIDTH, 'center')
+            elseif (side == 'left' and winningPlayer == 2) or (side == 'right' and winningPlayer == 1) then
+                love.graphics.setFont(largeFont)
+                love.graphics.printf("Computer wins",  0, 10, VIRTUAL_WIDTH, 'center')
+                love.graphics.setFont(smallFont)
+                love.graphics.printf('Press Enter to restart!', 0, 30, VIRTUAL_WIDTH, 'center')
+            end
+        end
+    elseif gameState == 'menu_mode' then
         love.graphics.setFont(largeFont)
-        love.graphics.printf('Player ' .. tostring(winningPlayer) .. ' wins!',
-            0, 10, VIRTUAL_WIDTH, 'center')
+        love.graphics.printf('Choose a mode. Press the corresponding number on your keyboard.',0, 10, VIRTUAL_WIDTH, 'center')
         love.graphics.setFont(smallFont)
-        love.graphics.printf('Press Enter to restart!', 0, 30, VIRTUAL_WIDTH, 'center')
-    end
-
+        love.graphics.printf('1. Player vs Player \n 2. Player vs Computer', 0, 50, VIRTUAL_WIDTH, 'center')
+        love.graphics.printf('Press escape to quit.', 0, VIRTUAL_HEIGHT - 20, VIRTUAL_WIDTH, 'right')
+     elseif gameState == 'menu_level' then
+        love.graphics.setFont(largeFont)
+        love.graphics.printf('Choose a difficulty level. Press the corresponding number on your keyboard.',0, 10, VIRTUAL_WIDTH, 'center')
+        love.graphics.setFont(smallFont)
+        love.graphics.printf('1. Easy \n \n \n 2. Average \n \n \n 3. Hard' , 0, 50, VIRTUAL_WIDTH, 'center')
+    elseif gameState == 'menu_side' then
+        love.graphics.setFont(largeFont)
+        love.graphics.printf('Choose a side. Press the corresponding number on your keyboard.',0, 10, VIRTUAL_WIDTH, 'center')
+        love.graphics.setFont(largeFont)
+        love.graphics.printf('\t 1. Left \t\t\t\t\t\t\t 2. Right', 0, 125, VIRTUAL_WIDTH, 'left')
     -- show the score before ball is rendered so it can move over the text
+    end
     displayScore()
-    
-    player1:render()
-    player2:render()
-    ball:render()
-
+    if gameState ~= 'menu_mode' and gameState ~= 'menu_level' and gameState ~= 'menu_side' then
+        player1:render()
+        player2:render()
+        ball:render()
+    end
     -- display FPS for debugging; simply comment out to remove
     displayFPS()
 
@@ -347,11 +538,11 @@ end
 ]]
 function displayScore()
     -- score display
-    love.graphics.setFont(scoreFont)
-    love.graphics.print(tostring(player1Score), VIRTUAL_WIDTH / 2 - 50,
-        VIRTUAL_HEIGHT / 3)
-    love.graphics.print(tostring(player2Score), VIRTUAL_WIDTH / 2 + 30,
-        VIRTUAL_HEIGHT / 3)
+    if gameState ~= 'menu_mode' and gameState ~= 'menu_level' and gameState ~= 'menu_side' then
+        love.graphics.setFont(scoreFont)
+        love.graphics.print(tostring(player1Score), VIRTUAL_WIDTH / 2 - 50, VIRTUAL_HEIGHT / 3)
+        love.graphics.print(tostring(player2Score), VIRTUAL_WIDTH / 2 + 30, VIRTUAL_HEIGHT / 3)
+     end
 end
 
 --[[
