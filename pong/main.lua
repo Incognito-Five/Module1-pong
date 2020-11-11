@@ -78,9 +78,9 @@ function love.load()
         ['paddle_hit'] = love.audio.newSource('sounds/paddle_hit.wav', 'static'),
         ['score'] = love.audio.newSource('sounds/score.wav', 'static'),
         ['wall_hit'] = love.audio.newSource('sounds/wall_hit.wav', 'static'),
-        ['menu_select'] = love.audio.newSource(),
-        ['menu_error'] = love.audio.newSource(),
-        ['bgm'] = love.audio.newSource()
+        ['menu_select'] = love.audio.newSource('sounds/menu_select.mp3','static'),
+        ['menu_error'] = love.audio.newSource('sounds/menu_error.mp3','static'),
+        ['pong_bgm'] = love.audio.newSource('sounds/pong_bgm.mp3','stream')
     }
     
     -- initialize our virtual resolution, which will be rendered within our
@@ -132,6 +132,10 @@ function love.load()
     -- 6. 'menu_level' (before the game starts, if the chosen mode is 'pvc', select difficulty)
     -- 7. 'menu_side' (before the game starts, if the chosen mode is 'pvc', select side)
     gameState = 'menu_mode'
+    
+   backgroundImage = love.graphics.newImage('bg.png')
+    
+    
 end
 
 --[[
@@ -158,9 +162,9 @@ function love.update(dt)
         sounds['bgm']:play()
     end
 
-    if (gameState ~= 'menu_mode' and gameState ~= 'menu_level' and gameState ~= 'menu_side') == true then
-        sounds['bgm']:setLooping(true)
-        love.audio.stop(sounds['bgm'])
+    if (gameState ~= 'menu_mode' and gameState ~= 'menu_diff' and gameState ~= 'menu_side' and gameState ~= 'menu_ctrl') == true then
+        sounds['pong_bgm']:setLooping(true)
+        love.audio.stop(sounds['pong_bgm'])
     end
     
     if gameState == 'serve' then
@@ -174,7 +178,7 @@ function love.update(dt)
                 ball.dx = -math.random(140, 200)
                 ball.dy = math.random(-50, 50)
             end 
-        end  
+        end
         if servingPlayer == 1 and side == 'left' and gameMode == 'pvc' then
             ball.dx = math.random(140, 200)
             ball.dy = math.random(-50, 50)
@@ -448,10 +452,10 @@ end
     drawing all of our game objects and more to the screen.
 ]]
 function love.draw()
-    -- begin drawing with push, in our virtual resolution
+    love.graphics.setColor(255,255,255)
+    love.graphics.draw(backgroundImage, 0,0)
+    
     push:start()
-
-    love.graphics.clear(40/255, 45/255, 52/255, 255/255)
     
     -- render different things depending on which part of the game we're in
     if gameState == 'start' then
@@ -508,18 +512,25 @@ function love.draw()
         love.graphics.setFont(smallFont)
         love.graphics.printf('1. Player vs Player \n 2. Player vs Computer', 0, 50, VIRTUAL_WIDTH, 'center')
         love.graphics.printf('Press escape to quit.', 0, VIRTUAL_HEIGHT - 20, VIRTUAL_WIDTH, 'right')
-     elseif gameState == 'menu_level' then
+     
+    
+    elseif gameState == 'menu_level' then
         love.graphics.setFont(largeFont)
         love.graphics.printf('Choose a difficulty level. Press the corresponding number on your keyboard.',0, 10, VIRTUAL_WIDTH, 'center')
         love.graphics.setFont(smallFont)
         love.graphics.printf('1. Easy \n \n \n 2. Average \n \n \n 3. Hard' , 0, 50, VIRTUAL_WIDTH, 'center')
+    
+    
     elseif gameState == 'menu_side' then
         love.graphics.setFont(largeFont)
         love.graphics.printf('Choose a side. Press the corresponding number on your keyboard.',0, 10, VIRTUAL_WIDTH, 'center')
         love.graphics.setFont(largeFont)
         love.graphics.printf('\t 1. Left \t\t\t\t\t\t\t 2. Right', 0, 125, VIRTUAL_WIDTH, 'left')
-    -- show the score before ball is rendered so it can move over the text
+   
+        
+        -- show the score before ball is rendered so it can move over the text
     end
+    
     displayScore()
     if gameState ~= 'menu_mode' and gameState ~= 'menu_level' and gameState ~= 'menu_side' then
         player1:render()
@@ -542,7 +553,8 @@ function displayScore()
         love.graphics.setFont(scoreFont)
         love.graphics.print(tostring(player1Score), VIRTUAL_WIDTH / 2 - 50, VIRTUAL_HEIGHT / 3)
         love.graphics.print(tostring(player2Score), VIRTUAL_WIDTH / 2 + 30, VIRTUAL_HEIGHT / 3)
-     end
+        love.graphics.setColor(45, 55/45, 65/255, 45)
+    end
 end
 
 --[[
