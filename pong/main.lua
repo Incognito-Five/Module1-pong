@@ -179,18 +179,18 @@ function love.update(dt)
                 ball.dy = math.random(-50, 50)
             end 
         end
-        if servingPlayer == 1 and side == 'left' and gameMode == 'pvc' then
+        if servingPlayer == 1 and side == 'left' and mode == 'pvc' then
             ball.dx = math.random(140, 200)
             ball.dy = math.random(-50, 50)
-        elseif servingPlayer == 2 and side == 'left' and gameMode == 'pvc' then  --changes
+        elseif servingPlayer == 2 and side == 'left' and mode == 'pvc' then  --changes
             ball.dx = -math.random(140, 200)
             ball.dy = math.random(-50, 50)
             gameState = 'play'
-        elseif servingPlayer == 1 and side == 'right' and gameMode == 'pvc'  then
+        elseif servingPlayer == 1 and side == 'right' and mode == 'pvc'  then
                 ball.dx = math.random(140, 200)
                 ball.dy = math.random(-50, 50)
                 gameState = 'play'
-            elseif servingPlayer == 2 and side == 'right' and gameMode == 'pvc' then  --changes
+            elseif servingPlayer == 2 and side == 'right' and mode == 'pvc' then  --changes
                 ball.dx = -math.random(140, 200)
                 ball.dy = math.random(-50, 50)
         end
@@ -277,7 +277,7 @@ function love.update(dt)
     -- paddles can move no matter what state we're in
     --
     -- player 1
-    if gameMode == 'pvp' then
+    if mode == 'pvp' then
         if love.keyboard.isDown('w') then
             player1.dy = -PADDLE_SPEED
         elseif love.keyboard.isDown('s') then
@@ -295,7 +295,7 @@ function love.update(dt)
             player2.dy = 0
         end
     end
-    if gameMode == 'pvc' then   
+    if mode == 'pvc' then   
         up_button = 'w'     
         down_button = 's'
         if controls == 'ws' then            -- set controls
@@ -373,7 +373,7 @@ function love.keypressed(key)
     -- if we press enter during either the start or serve phase, it should
     -- transition to the next appropriate state
     elseif key == 'enter' or key == 'return' then
-        if (gameMode == 'pvp') or (gameMode == 'pvc' and ((side == 'left' and servingPlayer == 1) or (side == 'right' and servingPlayer == 2))) then
+        if (mode == 'pvp') or (mode == 'pvc' and ((side == 'left' and servingPlayer == 1) or (side == 'right' and servingPlayer == 2))) then
             if gameState == 'start' then
                 gameState = 'serve'
             elseif gameState == 'serve' then
@@ -393,7 +393,7 @@ function love.keypressed(key)
                     servingPlayer = 1
                 end
             end
-        elseif  (gameMode == 'pvc') and ((side == 'left' and servingPlayer == 2) or (side == 'right' and servingPlayer == 1)) then
+        elseif  (mode == 'pvc') and ((side == 'left' and servingPlayer == 2) or (side == 'right' and servingPlayer == 1)) then
             if gameState == 'start' then
                 gameState = 'serve'
             end
@@ -402,11 +402,11 @@ function love.keypressed(key)
     -- the menu where one can choose to play standard PvP, against AI or watch
     if gameState == 'menu_mode' then
         if key == '1'  then
-            gameMode = 'pvp'
+            mode = 'pvp'
             gameState = 'start'
             sounds['menu_select']:play()
         elseif key == '2' then
-            gameMode = 'pvc'
+            mode = 'pvc'
             gameState = 'menu_level'
             sounds['menu_select']:play()
         else 
@@ -465,11 +465,11 @@ function love.draw()
         love.graphics.printf('Press Enter to begin!', 0, 20, VIRTUAL_WIDTH, 'center')
     elseif gameState == 'serve' then
         -- UI messages
-        if gameMode == 'pvp' then
+        if mode == 'pvp' then
             love.graphics.setFont(smallFont)
             love.graphics.printf('Player ' .. tostring(servingPlayer) .. "'s serve!", 0, 10, VIRTUAL_WIDTH, 'center')
             love.graphics.printf('Press Enter to serve!', 0, 20, VIRTUAL_WIDTH, 'center')
-         elseif gameMode == 'pvc' then
+         elseif mode == 'pvc' then
             if (side == 'left' and servingPlayer == 1) or (side == 'right' and servingPlayer == 2) then
                 love.graphics.setFont(smallFont)
                 love.graphics.printf("Player's serve!", 0, 10, VIRTUAL_WIDTH, 'center')
@@ -482,18 +482,18 @@ function love.draw()
         end
     elseif gameState == 'play' then
         love.graphics.setFont(smallFont)
-        if gameMode == 'pvc' then
+        if mode == 'pvc' then
             love.graphics.printf('difficulty: '..difficulty..' side: '..side..' controls: '..controls, 0, 10, VIRTUAL_WIDTH, 'center')
         end
         -- no UI messages to display in play
     elseif gameState == 'done' then
         -- UI messages
-        if gameMode == 'pvp' then
+        if mode == 'pvp' then
             love.graphics.setFont(largeFont)
             love.graphics.printf('Player ' .. tostring(winningPlayer) .. ' wins!', 0, 10, VIRTUAL_WIDTH, 'center')
             love.graphics.setFont(smallFont)
             love.graphics.printf('Press Enter to restart!', 0, 30, VIRTUAL_WIDTH, 'center')
-         elseif gameMode == 'pvc' then
+         elseif mode == 'pvc' then
             if (side == 'left' and winningPlayer == 1) or (side == 'right' and winningPlayer == 2) then
                 love.graphics.setFont(largeFont)
                 love.graphics.printf("Player wins", 0, 10, VIRTUAL_WIDTH, 'center')
