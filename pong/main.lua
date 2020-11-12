@@ -171,12 +171,11 @@ function love.update(dt)
         -- before switching to play, initialize ball's velocity based
         -- on player who last scored
         if mode == 'pvp' then                   ---pvp rules
+            ball.dy = math.random(-50, 50)
             if servingPlayer == 1 then
-                ball.dx = math.random(140, 200)
-                ball.dy = math.random(-50, 50)
+                ball.dx = math.random(140, 200)        
             elseif servingPlayer == 2 then  --changes
                 ball.dx = -math.random(140, 200)
-                ball.dy = math.random(-50, 50)
             end 
         end
         if servingPlayer == 1 and side == 'left' and mode == 'pvc' then
