@@ -552,7 +552,7 @@ function displayScore()
         love.graphics.setFont(scoreFont)
         love.graphics.print(tostring(player1Score), VIRTUAL_WIDTH / 2 - 50, VIRTUAL_HEIGHT / 3)
         love.graphics.print(tostring(player2Score), VIRTUAL_WIDTH / 2 + 30, VIRTUAL_HEIGHT / 3)
-        love.graphics.setColor(45, 55/45, 65/255, 45)
+        love.graphics.setColor(70/255, 219/255, 212/255, 255)
     end
 end
 
