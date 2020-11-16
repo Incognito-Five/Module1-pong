@@ -507,24 +507,24 @@ function love.draw()
         end
     elseif gameState == 'menu_mode' then
         love.graphics.setFont(largeFont)
-        love.graphics.printf('Choose a mode. Press the corresponding number on your keyboard.',0, 10, VIRTUAL_WIDTH, 'center')
+        love.graphics.printf('Choose a mode. Press the corresponding number on your keyboard.',0, 20, VIRTUAL_WIDTH, 'center')
         love.graphics.setFont(smallFont)
-        love.graphics.printf('1. Player vs Player \n 2. Player vs Computer', 0, 50, VIRTUAL_WIDTH, 'center')
+        love.graphics.printf('1. Player vs Player \n 2. Player vs Computer', 0, 70, VIRTUAL_WIDTH, 'center')
         love.graphics.printf('Press escape to quit.', 0, VIRTUAL_HEIGHT - 20, VIRTUAL_WIDTH, 'right')
      
     
     elseif gameState == 'menu_level' then
         love.graphics.setFont(largeFont)
-        love.graphics.printf('Choose a difficulty level. Press the corresponding number on your keyboard.',0, 10, VIRTUAL_WIDTH, 'center')
+        love.graphics.printf('Choose a difficulty level. Press the corresponding number on your keyboard.',0, 20, VIRTUAL_WIDTH, 'center')
         love.graphics.setFont(smallFont)
-        love.graphics.printf('1. Easy \n \n \n 2. Average \n \n \n 3. Hard' , 0, 50, VIRTUAL_WIDTH, 'center')
+        love.graphics.printf('1. Easy \n \n \n 2. Average \n \n \n 3. Hard' , 0, 70, VIRTUAL_WIDTH, 'center')
     
     
     elseif gameState == 'menu_side' then
         love.graphics.setFont(largeFont)
-        love.graphics.printf('Choose a side. Press the corresponding number on your keyboard.',0, 10, VIRTUAL_WIDTH, 'center')
+        love.graphics.printf('Choose a side. Press the corresponding number on your keyboard.',0, 20, VIRTUAL_WIDTH, 'center')
         love.graphics.setFont(largeFont)
-        love.graphics.printf('\t 1. Left \t\t\t\t\t\t\t 2. Right', 0, 125, VIRTUAL_WIDTH, 'left')
+        love.graphics.printf('\t 1. Left \t\t\t\t\t\t\t 2. Right', 0, 100, VIRTUAL_WIDTH, 'left')
    
         
         -- show the score before ball is rendered so it can move over the text
