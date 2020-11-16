@@ -322,10 +322,10 @@ function love.update(dt)
             pl1 = player2 
             pl2 = player1
         end
-        if ((ball.x - plr2.x)^2)^(0.5)  < check_width then 
+        if ((ball.x - pl2.x)^2)^(0.5)  < check_width then 
             if (pl2.y > (ball.y + ball.height/2))  then                    -- computer
                 pl2.dy = -PADDLE_SPEED
-            elseif (pl2.y + plr2.height < (ball.y + ball.height/2))  then
+            elseif (pl2.y + pl2.height < (ball.y + ball.height/2))  then
                 pl2.dy = PADDLE_SPEED
             else
                 pl2.dy = 0
