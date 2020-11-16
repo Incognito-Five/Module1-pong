@@ -133,7 +133,7 @@ function love.load()
     -- 7. 'menu_side' (before the game starts, if the chosen mode is 'pvc', select side)
     gameState = 'menu_mode'
     
-   backgroundImage = love.graphics.newImage('bg.png')
+   backgroundImage = love.graphics.newImage('images/bg_image.png')
     
     
 end
@@ -158,8 +158,8 @@ end
 ]]
 function love.update(dt)
     if (gameState ~= 'menu_mode' and gameState ~= 'menu_level' and gameState ~= 'menu_side') == false then
-        sounds['bgm']:setLooping(true)
-        sounds['bgm']:play()
+        sounds['pong_bgm']:setLooping(true)
+        sounds['pong_bgm']:play()
     end
 
     if (gameState ~= 'menu_mode' and gameState ~= 'menu_diff' and gameState ~= 'menu_side' and gameState ~= 'menu_ctrl') == true then
